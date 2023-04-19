@@ -42,11 +42,12 @@ if (process.env.GPT_MODE === "CHAT"){
 
 }
 
-app.get('/gpt/:text', async (req, res) => {
+app.get('/gpt/:user/:text', async (req, res) => {
     
     //The agent should recieve Username:Message in the text to identify conversations with different users in his history. 
     
     const text = req.params.text
+    const user = req.params.user
     const { Configuration, OpenAIApi } = require("openai");
 
     const configuration = new Configuration({
@@ -59,7 +60,7 @@ app.get('/gpt/:text', async (req, res) => {
       //CHAT MODE EXECUTION
 
       //Add user message to  messages
-      messages.push({role: "user", content: text})
+      messages.push({role: "user", content: text, name: user})
       //Check if message history is exceeded
       console.log("Conversations in History: " + ((messages.length / 2) -1) + "/" + process.env.HISTORY_LENGTH)
       if(messages.length > ((process.env.HISTORY_LENGTH * 2) + 1)) {
@@ -73,12 +74,7 @@ app.get('/gpt/:text', async (req, res) => {
 
       const response = await openai.createChatCompletion({
         model: "gpt-3.5-turbo",
-        messages: messages,
-        temperature: 0.5,
-        max_tokens: 128,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0,
+        messages: messages
       });
     
       if (response.data.choices) {
