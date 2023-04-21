@@ -22,7 +22,7 @@ async function getOauth() {
   await axios.post('https://id.twitch.tv/oauth2/token', qs.stringify(oauthForm))
     .then(function (response) {
       try {
-        const responseBody = JSON.parse(response.data)
+        const responseBody = response.data
         tmiOAuth = {
           oauth: responseBody.access_token,
           refresh: responseBody.refresh_token,
