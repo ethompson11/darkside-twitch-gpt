@@ -61,18 +61,6 @@ if (process.env.GPT_MODE === "CHAT"){
     if (err) throw err;
     console.log("Reading context file and adding it as system level message for the agent.")
     messages[0].content = data;
-    console.debug('Asking for oAuth')
-    await getOauth();
-    if(tmiOAuth !== {}) {
-      tmiClient = new tmi.Client({
-        options: {debug: true},
-        identity: {
-          username: 'SirLurksABot',
-          password: tmiOAuth.oauth
-        },
-        channels: [ 'venalis' ]
-      });
-    }
   });
 
 } else {
@@ -84,11 +72,6 @@ if (process.env.GPT_MODE === "CHAT"){
     console.log(file_context);
   });
 
-}
-
-if(tmiClient !== undefined){
-  tmiClient.connect();
-  tmiClient.say('venalis', 'SirLurksABot has arrived.');
 }
 
 app.get('/gpt/:user/:text', async (req, res) => {
@@ -103,7 +86,28 @@ app.get('/gpt/:user/:text', async (req, res) => {
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const openai = new OpenAIApi(configuration);      
+    const openai = new OpenAIApi(configuration);
+
+    if(text == "Deploy Bot" && user == "EdForLife"){
+      await getOauth();
+      if(tmiOAuth !== {}) {
+        tmiClient = new tmi.Client({
+          options: {debug: true},
+          identity: {
+            username: 'SirLurksABot',
+            password: tmiOAuth.oauth
+          },
+          channels: [ 'venalis' ]
+        });
+
+        if(tmiClient !== undefined){
+          tmiClient.connect();
+          tmiClient.say('venalis', 'SirLurksABot has arrived.');
+        }
+      }
+
+      res.send("SirLurksABot is deploying")
+    }
     
     if (GPT_MODE === "CHAT"){
       //CHAT MODE EXECUTION
