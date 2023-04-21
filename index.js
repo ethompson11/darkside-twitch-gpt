@@ -26,6 +26,7 @@ async function getOauth() {
         refresh: responseBody.refresh_token,
         expires: responseBody.expires_in
       }
+      console.log("OAuth retrieved")
     } catch(exception) {
       return console.log("Error reading body", body);
     }
