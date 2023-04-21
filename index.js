@@ -67,7 +67,7 @@ if (process.env.GPT_MODE === "CHAT"){
         options: {debug: true},
         identity: {
           username: 'SirLurksABot',
-          password: tmiOauth.oauth
+          password: tmiOAuth.oauth
         },
         channels: [ 'venalis' ]
       });
