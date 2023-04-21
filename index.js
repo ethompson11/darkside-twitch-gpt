@@ -8,29 +8,33 @@ let tmiOAuth = {};
 async function getOauth() {
   console.debug('OAuth Asked for')
 
-  await request.post('https://id.twitch.tv/oauth2/token', { form: {
-    client_id: process.env.TMI_ID,
-    client_secret: process.env.TMI_SECRET,
-    code: process.env.TMI_CODE,
-    grant_type: 'authorization_code',
-    redirect_url: 'https://darkside-chatgpt-bot.cyclic.app/'
-  }}, function(err, response, body) {
-    if(err) {
-      return console.log("Error getting oAuth", err);
-    }
-
-    try {
-      const responseBody = JSON.parse(body)
-      tmiOAuth = {
-        oauth: responseBody.access_token,
-        refresh: responseBody.refresh_token,
-        expires: responseBody.expires_in
+  try {
+    await request.post('https://id.twitch.tv/oauth2/token', { form: {
+      client_id: process.env.TMI_ID,
+      client_secret: process.env.TMI_SECRET,
+      code: process.env.TMI_CODE,
+      grant_type: 'authorization_code',
+      redirect_url: 'https://darkside-chatgpt-bot.cyclic.app/'
+    }}, function(err, response, body) {
+      if(err) {
+        return console.log("Error getting oAuth", err);
       }
-      console.log("OAuth retrieved")
-    } catch(exception) {
-      return console.log("Error reading body", body);
-    }
-  })
+
+      try {
+        const responseBody = JSON.parse(body)
+        tmiOAuth = {
+          oauth: responseBody.access_token,
+          refresh: responseBody.refresh_token,
+          expires: responseBody.expires_in
+        }
+        console.log("OAuth retrieved")
+      } catch(exception) {
+        return console.log("Error reading body", body);
+      }
+    })
+  } catch(requestError) {
+    return console.error("Error requesting oAuth", requestError);
+  }
 }
 
 const readFile = promisify(fs.readFile)
