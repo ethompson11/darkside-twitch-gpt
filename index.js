@@ -8,7 +8,7 @@ let tmiOAuth = {};
 async function getOauth() {
   console.debug('OAuth Asked for')
 
-  request.post('https://id.twitch.tv/oauth2/token', { form: {
+  await request.post('https://id.twitch.tv/oauth2/token', { form: {
     client_id: process.env.TMI_ID,
     client_secret: process.env.TMI_SECRET,
     code: process.env.TMI_CODE,
