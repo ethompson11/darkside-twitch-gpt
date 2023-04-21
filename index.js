@@ -54,7 +54,7 @@ const tmiClient = new tmi.Client({
     username: 'SirLurksABot',
     password: tmi_oauth.oauth
   },
-  channels: [ 'Venalis' ]
+  channels: [ 'venalis' ]
 });
 
 if (process.env.GPT_MODE === "CHAT"){
@@ -77,6 +77,8 @@ if (process.env.GPT_MODE === "CHAT"){
 }
 
 tmiClient.connect();
+
+tmiClient.say('venalis', 'SirLurksABot has arrived.');
 
 app.get('/gpt/:user/:text', async (req, res) => {
     
