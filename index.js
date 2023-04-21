@@ -13,7 +13,7 @@ let oauthForm = {
   client_secret: process.env.TMI_SECRET,
   code: process.env.TMI_CODE,
   grant_type: 'authorization_code',
-  redirect_url: 'https://darkside-chatgpt-bot.cyclic.app/'
+  redirect_url: encodeURI('https://darkside-chatgpt-bot.cyclic.app/')
 };
 
 async function getOauth() {
