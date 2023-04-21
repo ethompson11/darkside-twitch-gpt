@@ -89,21 +89,25 @@ app.get('/gpt/:user/:text', async (req, res) => {
     const openai = new OpenAIApi(configuration);
 
     if(text == "Deploy Bot" && user == "EdForLife"){
-      await getOauth();
-      if(tmiOAuth !== {}) {
-        tmiClient = new tmi.Client({
-          options: {debug: true},
-          identity: {
-            username: 'SirLurksABot',
-            password: tmiOAuth.oauth
-          },
-          channels: [ 'venalis' ]
-        });
-
-        if(tmiClient !== undefined){
-          tmiClient.connect();
-          tmiClient.say('venalis', 'SirLurksABot has arrived.');
+      try {
+        await getOauth();
+        if(tmiOAuth !== {}) {
+          tmiClient = new tmi.Client({
+            options: {debug: true},
+            identity: {
+              username: 'SirLurksABot',
+              password: tmiOAuth.oauth
+            },
+            channels: [ 'venalis' ]
+          });
+  
+          if(tmiClient !== undefined){
+            tmiClient.connect();
+            tmiClient.say('venalis', 'SirLurksABot has arrived.');
+          }
         }
+      }catch(err){
+        console.error("Issue deploying", err);
       }
 
       res.send("SirLurksABot is deploying")
