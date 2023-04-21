@@ -3,6 +3,7 @@ const request = require('request')
 const app = express()
 const fs = require('fs');
 const { promisify } = require('util')
+const tmi = require('tmi.js')
 const readFile = promisify(fs.readFile)
 const GPT_MODE = process.env.GPT_MODE
 
@@ -23,6 +24,39 @@ app.all('/', (req, res) => {
     res.send('Yo!')
 })
 
+let tmi_oauth;
+await request.post('https://id.twitch.tv/oauth2/token', { form: {
+    client_id: process.env.TMI_ID,
+    client_secret: process.env.TMI_SECRET,
+    code: process.env.TMI_CODE,
+    grant_type: 'authorization_code',
+    redirect_url: 'https://darkside-chatgpt-bot.cyclic.app/'
+  }}, function(err, response, body) {
+    if(err) {
+      return console.log("Error getting oAuth", err);
+    }
+
+    try {
+      const responseBody = JSON.parse(body)
+      tmi_oauth = {
+        oauth: responseBody.access_token,
+        refresh: responseBody.refresh_token,
+        expires: responseBody.expires_in
+      }
+    } catch(exception) {
+      return console.log("Error reading body", body);
+    }
+  });
+
+const tmiClient = new tmi.Client({
+  options: {debug: true},
+  identity: {
+    username: 'SirLurksABot',
+    password: tmi_oauth.oauth
+  },
+  channels: [ 'Venalis' ]
+});
+
 if (process.env.GPT_MODE === "CHAT"){
 
   fs.readFile("./file_context.txt", 'utf8', function(err, data) {
@@ -41,6 +75,8 @@ if (process.env.GPT_MODE === "CHAT"){
   });
 
 }
+
+tmiClient.connect();
 
 app.get('/gpt/:user/:text', async (req, res) => {
     
