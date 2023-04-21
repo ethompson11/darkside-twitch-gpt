@@ -1,27 +1,28 @@
 const express = require('express')
 const request = require('request')
+const axios = require('axios')
 const app = express()
+const qs = require('qs')
 const fs = require('fs');
 const { promisify } = require('util')
 const tmi = require('tmi.js')
 let tmiOAuth = undefined;
+let tmiClient = undefined;
+let oauthForm = {
+  client_id: process.env.TMI_ID,
+  client_secret: process.env.TMI_SECRET,
+  code: process.env.TMI_CODE,
+  grant_type: 'authorization_code',
+  redirect_url: 'https://darkside-chatgpt-bot.cyclic.app/'
+};
+
 async function getOauth() {
   console.debug('OAuth Asked for')
 
-  try {
-    await request.post('https://id.twitch.tv/oauth2/token', { form: {
-      client_id: process.env.TMI_ID,
-      client_secret: process.env.TMI_SECRET,
-      code: process.env.TMI_CODE,
-      grant_type: 'authorization_code',
-      redirect_url: 'https://darkside-chatgpt-bot.cyclic.app/'
-    }}, function(err, response, body) {
-      if(err) {
-        return console.log("Error getting oAuth", err);
-      }
-
+  await axios.post('https://id.twitch.tv/oauth2/token', qs.stringify(oauthForm))
+    .then(function (response) {
       try {
-        const responseBody = JSON.parse(body)
+        const responseBody = JSON.parse(response.data)
         tmiOAuth = {
           oauth: responseBody.access_token,
           refresh: responseBody.refresh_token,
@@ -29,12 +30,13 @@ async function getOauth() {
         }
         console.log("OAuth retrieved")
       } catch(exception) {
-        return console.log("Error reading body", body);
+        console.error("Error reading body", response.data);
       }
-    })
-  } catch(requestError) {
-    return console.error("Error requesting oAuth", requestError);
-  }
+    }).catch(function(error) {
+      console.error("Error with request", error)
+    }).finally(function () {
+      console.log("Request Processing Finished")
+    });
 }
 
 const readFile = promisify(fs.readFile)
@@ -56,8 +58,6 @@ app.all('/', (req, res) => {
     console.log("Just got a request!")
     res.send('Yo!')
 })
-
-let tmiClient = undefined;
 
 if (process.env.GPT_MODE === "CHAT"){
 
@@ -94,29 +94,7 @@ app.get('/gpt/:user/:text', async (req, res) => {
 
     if(text == "Deploy Bot" && user == "EdForLife"){
       try {
-        request.post('https://id.twitch.tv/oauth2/token', { form: {
-          client_id: process.env.TMI_ID,
-          client_secret: process.env.TMI_SECRET,
-          code: process.env.TMI_CODE,
-          grant_type: 'authorization_code',
-          redirect_url: 'https://darkside-chatgpt-bot.cyclic.app/'
-        }}, function(err, response, body) {
-          if(err) {
-            return console.log("Error getting oAuth", err);
-          }
-
-          try {
-            const responseBody = JSON.parse(body)
-            tmiOAuth = {
-              oauth: responseBody.access_token,
-              refresh: responseBody.refresh_token,
-              expires: responseBody.expires_in
-            }
-            console.log("OAuth retrieved")
-          } catch(exception) {
-            return console.log("Error reading body", body);
-          }
-        })
+        await getOauth();
         if(tmiOAuth != undefined) {
           tmiClient = new tmi.Client({
             options: {debug: true},
