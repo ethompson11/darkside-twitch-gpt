@@ -4,8 +4,36 @@ const app = express()
 const fs = require('fs');
 const { promisify } = require('util')
 const tmi = require('tmi.js')
+let tmiOAuth = {};
+async function getOauth() {
+  console.debug('OAuth Asked for')
+
+  request.post('https://id.twitch.tv/oauth2/token', { form: {
+    client_id: process.env.TMI_ID,
+    client_secret: process.env.TMI_SECRET,
+    code: process.env.TMI_CODE,
+    grant_type: 'authorization_code',
+    redirect_url: 'https://darkside-chatgpt-bot.cyclic.app/'
+  }}, function(err, response, body) {
+    if(err) {
+      return console.log("Error getting oAuth", err);
+    }
+
+    try {
+      const responseBody = JSON.parse(body)
+      tmiOAuth = {
+        oauth: responseBody.access_token,
+        refresh: responseBody.refresh_token,
+        expires: responseBody.expires_in
+      }
+    } catch(exception) {
+      return console.log("Error reading body", body);
+    }
+  })
+}
+
 const readFile = promisify(fs.readFile)
-const GPT_MODE = process.env.GPT_MODE
+const GPT_MODE = process.env.GPT_MODE || "CHAT"
 
 let file_context = "You are a helpful Twitch Chatbot."
 
@@ -24,45 +52,26 @@ app.all('/', (req, res) => {
     res.send('Yo!')
 })
 
-let tmi_oauth;
-request.post('https://id.twitch.tv/oauth2/token', { form: {
-    client_id: process.env.TMI_ID,
-    client_secret: process.env.TMI_SECRET,
-    code: process.env.TMI_CODE,
-    grant_type: 'authorization_code',
-    redirect_url: 'https://darkside-chatgpt-bot.cyclic.app/'
-  }}, function(err, response, body) {
-    if(err) {
-      return console.log("Error getting oAuth", err);
-    }
-
-    try {
-      const responseBody = JSON.parse(body)
-      tmi_oauth = {
-        oauth: responseBody.access_token,
-        refresh: responseBody.refresh_token,
-        expires: responseBody.expires_in
-      }
-    } catch(exception) {
-      return console.log("Error reading body", body);
-    }
-  });
-
-const tmiClient = new tmi.Client({
-  options: {debug: true},
-  identity: {
-    username: 'SirLurksABot',
-    password: tmi_oauth.oauth
-  },
-  channels: [ 'venalis' ]
-});
+let tmiClient = undefined;
 
 if (process.env.GPT_MODE === "CHAT"){
 
-  fs.readFile("./file_context.txt", 'utf8', function(err, data) {
+  fs.readFile("./file_context.txt", 'utf8', async function(err, data) {
     if (err) throw err;
     console.log("Reading context file and adding it as system level message for the agent.")
     messages[0].content = data;
+    console.debug('Asking for oAuth')
+    await getOauth();
+    if(tmiOAuth !== {}) {
+      tmiClient = new tmi.Client({
+        options: {debug: true},
+        identity: {
+          username: 'SirLurksABot',
+          password: tmiOauth.oauth
+        },
+        channels: [ 'venalis' ]
+      });
+    }
   });
 
 } else {
@@ -76,9 +85,10 @@ if (process.env.GPT_MODE === "CHAT"){
 
 }
 
-tmiClient.connect();
-
-tmiClient.say('venalis', 'SirLurksABot has arrived.');
+if(tmiClient !== undefined){
+  tmiClient.connect();
+  tmiClient.say('venalis', 'SirLurksABot has arrived.');
+}
 
 app.get('/gpt/:user/:text', async (req, res) => {
     
