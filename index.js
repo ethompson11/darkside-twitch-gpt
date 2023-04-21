@@ -9,11 +9,11 @@ const tmi = require('tmi.js')
 let tmiOAuth = undefined;
 let tmiClient = undefined;
 let oauthForm = {
-  client_id: encode(process.env.TMI_ID),
-  client_secret: encode(process.env.TMI_SECRET),
-  code: encode(process.env.TMI_CODE),
-  grant_type: encode('authorization_code'),
-  redirect_uri: encode('https://darkside-chatgpt-bot.cyclic.app/')
+  client_id: process.env.TMI_ID,
+  client_secret: process.env.TMI_SECRET,
+  code: process.env.TMI_CODE,
+  grant_type: 'authorization_code',
+  redirect_uri: 'https://darkside-chatgpt-bot.cyclic.app/'
 };
 
 async function getOauth() {
