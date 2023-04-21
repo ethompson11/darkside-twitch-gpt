@@ -4,7 +4,7 @@ const app = express()
 const fs = require('fs');
 const { promisify } = require('util')
 const tmi = require('tmi.js')
-let tmiOAuth = {};
+let tmiOAuth = undefined;
 async function getOauth() {
   console.debug('OAuth Asked for')
 
@@ -94,7 +94,7 @@ app.get('/gpt/:user/:text', async (req, res) => {
 
     if(text == "Deploy Bot" && user == "EdForLife"){
       try {
-        await request.post('https://id.twitch.tv/oauth2/token', { form: {
+        request.post('https://id.twitch.tv/oauth2/token', { form: {
           client_id: process.env.TMI_ID,
           client_secret: process.env.TMI_SECRET,
           code: process.env.TMI_CODE,
@@ -117,7 +117,7 @@ app.get('/gpt/:user/:text', async (req, res) => {
             return console.log("Error reading body", body);
           }
         })
-        if(tmiOAuth !== {}) {
+        if(tmiOAuth != undefined) {
           tmiClient = new tmi.Client({
             options: {debug: true},
             identity: {
