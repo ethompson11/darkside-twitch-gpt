@@ -100,7 +100,7 @@ app.get('/gpt/:user/:text', async (req, res) => {
             options: {debug: true},
             identity: {
               username: 'SirLurksABot',
-              password: tmiOAuth.oauth
+              password: `oauth:${tmiOAuth.oauth}`
             },
             channels: [ 'venalis' ]
           });
