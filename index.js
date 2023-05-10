@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express')
 const request = require('request')
 const axios = require('axios')
@@ -9,8 +10,6 @@ const tmi = require('tmi.js')
 const users = require('./db/users');
 const { exit } = require('process')
 let currentUser = undefined;
-
-require('dotenv').config()
 let tmiOAuth = undefined;
 let tmiClient = undefined;
 let oauthForm = {
