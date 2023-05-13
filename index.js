@@ -1,4 +1,8 @@
-require('dotenv').config()
+try {
+  require('dotenv').config()
+} catch (ex) {
+  console.info("DOTENV Not Found");
+}
 const express = require('express')
 const request = require('request')
 const axios = require('axios')
